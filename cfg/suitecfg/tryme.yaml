@@ -1,0 +1,56 @@
+
+#################### Test specification attributes ###################
+
+#- id: <id>                          # Required; corresponds to test case ID
+#  name: <name>                      # Optional; name a test spec
+#  command: <path>                   # Required; the full path to the script
+#    These optional strings are interpolated within the command string:
+#       [server]         - The local hostname where the 'its' master process is running
+#       [ordinal]        - A unique integer representing the order in which tests start
+#       [instanceId]     - A unique integer id per host/test spec; corresponds to the 'count' parameter
+#       [id]             - The script spec's id; intended to correspond to a test database ID
+#       [testInstanceId] - A unique concatenated string 000001_localhost_ls_777; corresponds to process directory names
+#       [epoch]          - Hi-resolution seconds since the epoch, in micro-seconds
+#    These environment variables help shorten commands:
+#       $ITS_TESTDIR     - The root directory for test scripts
+#       $ITS_TESTBED     - The testbed yaml file passed to its
+#  loop:
+#    - [1, 2, 3]                     # Optional: Interpolation variable [0]
+#    - [4, 5]                        # Optional: Interpolation variable [1]
+#  server: <name>                    # Required (|type); remote host on which to run the script
+#  background: (0|1)                 # Optional (default=0); whether to wait on completion
+#  timeout: (<f>)                    # Optional (default=None); timeout and kill the test after this many seconds
+#  count: <n>                        # Optional (default=1); how many test processes to start
+#  presleep: (<f>)                   # Optional (default=0); how long to wait before starting subtests
+#  postsleep: (<f>)                  # Optional (default=0); how long to wait after completion
+#  wait: (previous|<test1>..<testn>) # Optional; wait on previous process completion
+#  ignore: (0|1)                     # Optional (default=0); always pass
+#  type: <type>                      # Required (|server); run on all hosts of this type (use instead of 'server')
+#  haltonfail: (0|1)                 # Optional; halt all the running tests and exit
+#  scpfrom: <path>                   # Optional: Path to source file; takes precedence over 'command'
+#  scpto: <path>                     # Optional: Path to destination file; takes precedence over 'command'
+
+######################## Environment Variables #######################
+
+# Demonstrate a scaleable dd workload
+
+- id: 1
+  type: localhost
+  command: 'rm -Rf /tmp/tryme'
+  ignore: 1
+
+- id: 2
+  type: localhost
+  command: 'mkdir -p /tmp/tryme'
+  
+- id: 3
+  type: localhost
+  command: '/bin/dd if=/dev/urandom of=/tmp/tryme/[epoch] bs=4k count=32'
+  count: 100
+  background: 1
+  
+- id: 4
+  type: localhost
+  command: 'ls -lFa /tmp/tryme'
+  wait: [3]
+  

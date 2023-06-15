@@ -1,0 +1,79 @@
+
+#################### Test specification attributes ###################
+
+#- id: <id>                          # Required; corresponds to test case ID
+#  name: <name>                      # Optional; name a test spec
+#  command: <path>                   # Required; the full path to the script
+#    These optional strings are interpolated within the command string:
+#       [server]         - The local hostname where the 'its' master process is running
+#       [ordinal]        - A unique integer representing the order in which tests start
+#       [instanceId]     - A unique integer id per host/test spec; corresponds to the 'count' parameter
+#       [id]             - The script spec's id; intended to correspond to a test database ID
+#       [testInstanceId] - A unique concatenated string 000001_localhost_ls_777; corresponds to process directory names
+#       [epoch]          - Hi-resolution seconds since the epoch, in micro-seconds
+#    These environment variables help shorten commands:
+#       $ITS_TESTDIR     - The root directory for test scripts
+#       $ITS_TESTBED     - The testbed yaml file passed to its
+#  loop:
+#    - [1, 2, 3]                     # Optional: Interpolation variable [0]
+#    - [4, 5]                        # Optional: Interpolation variable [1]
+#  server: <name>                    # Required (|type); remote host on which to run the script
+#  background: (0|1)                 # Optional (default=0); whether to wait on completion
+#  timeout: (<f>)                    # Optional (default=None); timeout and kill the test after this many seconds
+#  count: <n>                        # Optional (default=1); how many test processes to start
+#  presleep: (<f>)                   # Optional (default=0); how long to wait before starting subtests
+#  postsleep: (<f>)                  # Optional (default=0); how long to wait after completion
+#  wait: (previous|<test1>..<testn>) # Optional; wait on previous process completion
+#  ignore: (0|1)                     # Optional (default=0); always pass
+#  type: <type>                      # Required (|server); run on all hosts of this type (use instead of 'server')
+#  haltonfail: (0|1)                 # Optional; halt all the running tests and exit
+#  scpfrom: <path>                   # Optional: Path to source file; takes precedence over 'command'
+#  scpto: <path>                     # Optional: Path to destination file; takes precedence over 'command'
+
+
+######################## Environment Variables #######################
+
+# ITS Unit Tests
+#./its.py -a run -u todd.shoenfelt -t ~/cfg/localhost.yaml -s ~/its/cfg/suitecfg/unittest.yaml
+
+# Test interpolation, count, loop, and background
+- id: 1
+  server: localhost
+  command: 'echo [0].[1] [server].[instanceId]'
+  count: 2
+  loop:
+    - [1, 2]
+    - ['apple', 'pear']
+  background: 1
+
+# Test wait, presleep, postsleep, compound statement
+- id: 2
+  server: localhost
+  command: 'date; pwd; /bin/date --utc'
+  presleep: 1.003
+  postsleep: 2.9
+  wait: [1]
+
+# Test scp
+- id: 3
+  server: localhost
+  scpfrom: '/home/its/its/bin/its.py'
+  scpto: '/tmp'
+
+# Test ignore, timeout, name
+- id: 4
+  command: 'for i in `seq 1 10`; do echo $i; sleep 1; done'
+  name: 'runlong'
+  timeout: 5
+  background: 1
+  ignore: 1
+
+# Test remote environment variables
+- id: 5
+  type: localhost
+  command: printenv
+  background: 1
+  count: 2
+
+
+

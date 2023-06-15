@@ -1,0 +1,193 @@
+
+#################### Test specification attributes ###################
+
+#- id: <id>                          # Required; corresponds to test case ID
+#  name: <name>                      # Optional; name a test spec
+#  command: <path>                   # Required; the full path to the script
+#    These optional strings are interpolated within the command string:
+#       [server]         - The local hostname where the 'its' master process is running
+#       [ordinal]        - A unique integer representing the order in which tests start
+#       [instanceId]     - A unique integer id per host/test spec; corresponds to the 'count' parameter
+#       [id]             - The script spec's id; intended to correspond to a test database ID
+#       [testInstanceId] - A unique concatenated string 000001_localhost_ls_777; corresponds to process directory names
+#       [epoch]          - Hi-resolution seconds since the epoch, in micro-seconds
+#       [0],[1],[2]...   - 'loop' variable from loop lists
+#    These environment variables help shorten commands:
+#       $ITS_TESTDIR     - The root directory for test scripts
+#       $ITS_TESTBED     - The testbed yaml file passed to its
+#       $ITS_RUNID       - The unique ITS ID for this suite run
+#  server: <name>                    # Required (|type); remote host on which to run the script
+#  background: (0|1)                 # Optional (default=0); whether to wait on completion
+#  count: <n>                        # Optional (default=1); how many test processes to start
+#  loop:                             # Optional; lists to be looped over (all combinations)
+#    - [1, 2, 3]                     #   [0] - The corresponding interpolation variable
+#    - ['apple', 'pear']             #   [1] - The corresponding interpolation variable
+#  presleep: (<f>)                   # Optional (default=0); how long to wait before starting subtests
+#  postsleep: (<f>)                  # Optional (default=0); how long to wait after completion
+#  wait: (previous|<test1>..<testn>) # Optional; wait on previous process completion
+#  ignore: (0|1)                     # Optional (default=0); always pass
+#  type: <type>                      # Required (|server); run on all hosts of this type (use instead of 'server')
+#  haltonfail: (0|1)                 # Optional; halt all the running tests and exit
+#  scpfrom: <path>                   # Optional: Path to source file; takes precedence over 'command'
+#  scpto: <path>                     # Optional: Path to destination file; takes precedence over 'command'
+
+######################## Environment Variables #######################
+
+# A simple command
+
+- id: 100
+  server: localhost
+  command: hostname
+  
+# A command issued to all hosts of a type
+
+- id: 101
+  type: linux
+  command: hostname
+
+# A command issued multiple times
+
+- id: 102
+  server: localhost
+  count: 10
+
+# A command issued multiple times in the background
+
+- id: 103
+  server: localhost
+  count: 10
+  background: 1  
+
+# A command issued multiple times in the background with string interpolation
+# to assure no name collisions (instanceID=count)
+
+- id: 104
+  server: localhost
+  command: 'mkdir /tmp/[instanceId]'
+  count: 10
+  background: 1
+  
+# A command issued to all linux hosts twice for each combination of the list items
+  
+- id: 34
+  type: linux
+  command: 'echo [0].[1] [server].[instanceId]'
+  count: 2
+  loop:
+    - [1, 2, 3]
+    - ['apple', 'pear']
+    
+#1.apple 127.0.0.1.1
+#1.pear 127.0.0.1.1
+#2.apple 127.0.0.1.1
+#2.pear 127.0.0.1.1
+#3.apple 127.0.0.1.1
+#3.pear 127.0.0.1.1
+#1.apple 127.0.0.1.2
+#1.pear 127.0.0.1.2
+#2.apple 127.0.0.1.2
+#2.pear 127.0.0.1.2
+#3.apple 127.0.0.1.2
+#3.pear 127.0.0.1.2
+#1.apple localhost.1
+#1.pear localhost.1
+#2.apple localhost.1
+#2.pear localhost.1
+#3.apple localhost.1
+#3.pear localhost.1
+#1.apple localhost.2
+#1.pear localhost.2
+#2.apple localhost.2
+#2.pear localhost.2
+#3.apple localhost.2
+#3.pear localhost.2    
+  
+# Wait on specific previously backgrounded commands
+
+- id: 105
+  server: localhost
+  command: 'touch /tmp/myname-[instanceId]'
+  count: 2
+  background: 1
+  
+- id: 106
+  server: localhost
+  command: 'ls -lFa /tmp | grep myname'
+  wait: [105]
+
+- id: 107
+  server: localhost
+  command: 'ls /tmp'
+  wait: previous
+
+# Copy a file from the master host to a remote server
+
+- id: 108
+  server: localhost
+  scpfrom: '/tmp/from/foo.txt'
+  scpto: '/home/tshoenfelt'
+
+# Recursively copy a directory from the master host to a remote server
+
+- id: 109
+  server: localhost
+  scpfrom: '/tmp/from'
+  scpto: '/home/tshoenfelt'
+
+# A working fio workload example
+
+# trivial.cfg is:
+
+# [global]
+# ioengine=posixaio
+# rw=readwrite
+# size=1m
+# directory=/tmp/fio/trivial
+# thread=1
+# time_based=1
+# runtime=60
+#
+# [target]
+
+- id: 649
+  server: localhost
+  command: 'rm -Rf /tmp/fio/trivial'
+  ignore: 1
+  
+- id: 650
+  server: localhost
+  command: 'mkdir -p /tmp/fio/trivial'
+  ignore: 1
+
+- id: 651
+  server: localhost
+  scpfrom: '/home/tshoenfelt/junk/trivial.cfg'
+  scpto: '/tmp/trivial.cfg'
+
+- id: 652
+  server: localhost
+  command: "sed 's/target/trivial-[instanceId]/' < /tmp/trivial.cfg > /tmp/[instanceId]"
+  count: 20
+
+- id: 653
+  server: localhost
+  command: 'cat /tmp/[instanceId]'
+  count: 20
+
+- id: 654
+  server: localhost
+  command: 'dstat --nocolor 1 70'
+  background: 1
+
+- id: 655
+  server: localhost
+  command: 'fio /tmp/[instanceId]'
+  background: 1
+  count: 20
+
+- id: 656
+  server: localhost
+  command: 'ls -lFRa /tmp/fio/trivial'
+  wait: [655]
+
+  

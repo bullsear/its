@@ -1,0 +1,16 @@
+############## User Test Run Configuration File ###############
+
+# ( Not for actual use. )
+
+# The variables herein are user-supplied and apply to a single test run.
+# These become ENV variables and can be referenced by sub-processes in the test
+# specification.  Please follow the convention of prepending each variable with
+# "IST_" so they group together when sorted.
+
+###############################################################
+
+IST_SOFTWAREVERSION: 1.2.2345
+IST_USERNAME: memyselfandi
+
+
+

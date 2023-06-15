@@ -1,0 +1,15 @@
+#!/bin/bash
+
+log=$1
+matches=$2
+
+tail -f -n 1 $log | while read LINE
+do 
+	if echo ${LINE} | grep -q $matches
+	then
+		echo "LOG ENTRY FOUND: " ${LINE}
+		pkill -P $$ tail 2>/dev/null
+		exit 1
+	fi
+done
+

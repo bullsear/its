@@ -1,0 +1,11 @@
+
+- server: localhost
+  type: localhost
+  username: its
+  password: its
+  
+- server: '127.0.0.1'
+  type: localhost
+  username: its
+  password: its
+  

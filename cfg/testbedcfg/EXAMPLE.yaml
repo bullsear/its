@@ -1,0 +1,25 @@
+############## Testbed Configuration File ###############
+
+# ( Not for actual use. )
+
+# This describes the testbed nodes in a single testbed.  Create one 
+# of these for each testbed to be used in testing.  The following
+# server attributes are supported:
+#    server - the server name or IP
+#    type - the type of the server for grouping server type together
+#    username - the ssh username
+#    password - the ssh password
+
+##########################################################
+
+- server: 127.0.0.1
+  type: linux
+  username: root
+  password: password
+  
+- server: localhost
+  type: linux
+  username: root
+  password: password
+  
+  

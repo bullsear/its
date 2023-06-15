@@ -1,0 +1,14 @@
+
+# The variables herein don't change.
+
+# These become ENV variables and can be referenced by sub-processes in the test
+# specification.  
+
+#ITS_TESTDIR: '/mnt/its/its/tests'
+ITS_LOGDIR: '/var/log/its'
+#ITS_RESERVATION_DIR: '/mnt/its/its/reserve'           ### Bug; should not be required
+#ITS_RESERVATION_LOGDIR: '/mnt/its/its/reserve/logs'   ### Bug; no longer required
+#ITS_MAXLOGDIRSIZE: 240000     # In Bytes
+
+
+
