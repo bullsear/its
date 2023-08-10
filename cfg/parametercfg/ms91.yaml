@@ -9,6 +9,6 @@
 
 ###############################################################
 
-ITS_INSTALLER_PATH: /home/its/easiscale_builds/MS91/hgst_installer_v0.98g_no_isos.tgz
-ITS_ISO_PATH: /home/its/easiscale_builds/MS91/marvin_activescale__blackbanner-ms91_2016-06-13-22_40.iso
-ITS_BUILD: 'MS91'
+ITS_INSTALLER_PATH: ''
+ITS_ISO_PATH: ''
+ITS_BUILD: ''
